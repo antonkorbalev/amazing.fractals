@@ -1,0 +1,16 @@
+﻿@page "/"
+<h3>Julia</h3>
+
+@using amazing.fractals.Data
+@inject JuliaGeneratorService GeneratorService
+
+<h1>@_genData.Test</h1>
+
+@code {
+    private FractalGenerationData _genData;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        _genData = await GeneratorService.Generate();
+    }
+}
