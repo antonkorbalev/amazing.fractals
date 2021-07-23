@@ -6,7 +6,7 @@ namespace amazing.fractals.Data
     {
         public Task<FractalGenerationData> Generate()
         {
-            return Task.FromResult(new FractalGenerationData() { Test = "a" });
+            return Task.FromResult(new FractalGenerationData());
         }
     }
 }
