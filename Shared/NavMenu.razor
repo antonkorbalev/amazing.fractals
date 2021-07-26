@@ -1,29 +1,39 @@
-﻿<div class="top-row pl-4 navbar navbar-dark">
-    <a class="navbar-brand" href="">amazing.fractals</a>
-    <button class="navbar-toggler" @onclick="ToggleNavMenu">
-        <span class="navbar-toggler-icon"></span>
-    </button>
-</div>
-
-<div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
-    <ul class="nav flex-column">
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="/">
-                <span class="oi oi-list-rich" aria-hidden="true"></span> Julia sets
-            </NavLink>
-            <NavLink class="nav-link" href="/about">
-                <span class="oi oi-list-rich" aria-hidden="true"></span> About
-            </NavLink>            
-        </li>        
-    </ul>
-</div>
+﻿<nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-2">
+    <div class="container">
+        <NavLink class="navbar-brand" href="">Amazing fractals</NavLink>
+        <button class="navbar-toggler" type="button" @onclick="ToggleNavMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
+            <ul class="navbar-nav flex-grow-1">
+                <li class="nav-item">
+                    <NavLink class="nav-link text-dark" href="/">
+                        <span class="oi" aria-hidden="true"></span> Julia sets
+                    </NavLink>
+                </li>
+                <li class="nav-item">
+                    <NavLink class="nav-link text-dark" href="about">
+                        <span class="oi" aria-hidden="true"></span> About
+                    </NavLink>
+                </li>  
+                <li class="nav-item">
+                    <NavLink class="nav-link text-dark" href="contacts">
+                        <span class="oi" aria-hidden="true"></span> Contacts
+                    </NavLink>
+                </li>                  
+            </ul>
+        </div>
+    </div>
+</nav>
 
 @code {
-    private bool collapseNavMenu = true;
+    bool collapseNavMenu = true;
 
-    private string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+    string baseMenuClass = "navbar-collapse d-sm-inline-flex flex-sm-row-reverse";
 
-    private void ToggleNavMenu()
+    string NavMenuCssClass => baseMenuClass + (collapseNavMenu ? " collapse" : "");
+
+    void ToggleNavMenu()
     {
         collapseNavMenu = !collapseNavMenu;
     }
