@@ -1,4 +1,4 @@
-﻿/obj/*
-/bin/*
-/.vs/*
-/.idea/*
+﻿obj/*
+bin/*
+.vs/*
+.idea/*
