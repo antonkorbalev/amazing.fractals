@@ -1,17 +1,20 @@
 ﻿@page "/julia"
 
-<h3>Julia</h3>
+<div class="container text-center">
+    <img class="img-fluid"
+             src="data:image;base64,@Convert.ToBase64String(_genData.FractalData)"
+             alt="Fractal is unavailable"/>
+</div>
 
 @using amazing.fractals.Data
 @inject JuliaGeneratorService GeneratorService
 
-
-
 @code {
     private FractalGenerationData _genData;
+    private int _pixelsNum = 1000;
     
     protected override async Task OnInitializedAsync()
     {
-        _genData = await GeneratorService.Generate();
+        _genData = await GeneratorService.Generate(_pixelsNum, _pixelsNum);
     }
 }

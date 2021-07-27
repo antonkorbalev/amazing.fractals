@@ -2,6 +2,6 @@
 {
     public class FractalGenerationData
     {
-        
+        public byte[] FractalData { get; set; } 
     }
 }
