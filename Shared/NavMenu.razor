@@ -1,23 +1,23 @@
 ﻿<nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-2">
     <div class="container">
-        <NavLink class="navbar-brand" href="">Amazing fractals</NavLink>
+        <NavLink class="navbar-brand" href="julia"><span style="color: darkred;"> Amazing</span> <span style="color: dodgerblue;"> fractals </span></NavLink>
         <button class="navbar-toggler" type="button" @onclick="ToggleNavMenu">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
             <ul class="navbar-nav flex-grow-1">
-                <li class="nav-item">
-                    <NavLink class="nav-link text-dark" href="/">
+                <li class="nav-item @GetActive("julia", NavLinkMatch.All)">
+                    <NavLink class="nav-link" href="julia">
                         <span class="oi" aria-hidden="true"></span> Julia sets
                     </NavLink>
                 </li>
-                <li class="nav-item">
-                    <NavLink class="nav-link text-dark" href="about">
+                <li class="nav-item @GetActive("about", NavLinkMatch.All)">
+                    <NavLink class="nav-link" href="about">
                         <span class="oi" aria-hidden="true"></span> About
                     </NavLink>
                 </li>  
-                <li class="nav-item">
-                    <NavLink class="nav-link text-dark" href="contacts">
+                <li class="nav-item @GetActive("contacts", NavLinkMatch.All)">
+                    <NavLink class="nav-link" href="contacts">
                         <span class="oi" aria-hidden="true"></span> Contacts
                     </NavLink>
                 </li>                  
@@ -27,14 +27,30 @@
 </nav>
 
 @code {
-    bool collapseNavMenu = true;
+    [Inject]
+    NavigationManager NavigationManager { get; set; }
+    
+    protected override void OnInitialized() => 
+        NavigationManager.LocationChanged += (s, e) => StateHasChanged();
+    
+    bool IsActive(string href, NavLinkMatch navLinkMatch = NavLinkMatch.Prefix)
+    {
+        var relativePath = NavigationManager.ToBaseRelativePath(NavigationManager.Uri).ToLower();
 
-    string baseMenuClass = "navbar-collapse d-sm-inline-flex flex-sm-row-reverse";
+        return navLinkMatch == NavLinkMatch.All ? 
+            relativePath == href.ToLower() : relativePath.StartsWith(href.ToLower());
+    }
 
-    string NavMenuCssClass => baseMenuClass + (collapseNavMenu ? " collapse" : "");
+    string GetActive(string href, NavLinkMatch navLinkMatch = NavLinkMatch.Prefix) => IsActive(href, navLinkMatch) ? "text-dark" : "";
+
+    bool _collapseNavMenu = true;
+
+    string _baseMenuClass = "navbar-collapse d-sm-inline-flex flex-sm-row-reverse";
+
+    string NavMenuCssClass => _baseMenuClass + (_collapseNavMenu ? " collapse" : "");
 
     void ToggleNavMenu()
     {
-        collapseNavMenu = !collapseNavMenu;
+        _collapseNavMenu = !_collapseNavMenu;
     }
 }
