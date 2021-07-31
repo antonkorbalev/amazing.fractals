@@ -6,22 +6,42 @@ namespace amazing.fractals.Data
 {
     public class JuliaGeneratorService
     {
-        public Task<FractalGenerationData> Generate(int sizeX, int sizeY)
+        public Task<byte[]> Generate(FractalGenerationData genData)
         {
-            return Task.FromResult(new FractalGenerationData()
-                {
-                    FractalData = ImageToByteArray(GetFractalImage(sizeX, sizeY))
-                }
-            );
+            return Task.FromResult(ImageToByteArray(GetFractalImage(genData)));
         }
 
-        private Image GetFractalImage(int sizeX, int sizeY)
+        private Image GetFractalImage(FractalGenerationData genData)
         {
-            var bm = new Bitmap(sizeX, sizeY);
+            var bm = new Bitmap(genData.ImageWidth, genData.ImageHeight);
             
-            for (var i=0; i < sizeX; i++)
-            for (var j = 0; j < sizeY; j++)
-                bm.SetPixel(i, j, Color.FromArgb(i % 255, j % 255, 0));
+            for (var x=0; x < genData.ImageWidth; x++)
+            for (var y = 0; y < genData.ImageHeight; y++)
+            {
+                var newRe = 1.5 * (x - genData.ImageWidth / 2) / (0.5 * genData.Zoom * genData.ImageWidth) + genData.MoveX;
+                var newIm = (y - genData.ImageHeight / 2) / (0.5 * genData.Zoom * genData.ImageHeight) + genData.MoveY;
+
+                var iter = 0;
+                for (var i = 0; i < genData.MaxIterations; i++)
+                {
+                    var oldRe = newRe;
+                    var oldIm = newIm;
+                    
+                    newRe = oldRe * oldRe - oldIm * oldIm + genData.CRe;
+                    newIm = 2 * oldRe * oldIm + genData.CIm;
+
+                    iter = i;
+                    if((newRe * newRe + newIm * newIm) > 4) 
+                        break;
+                }
+                
+                bm.SetPixel(x, y, 
+                    Color.FromArgb(
+                        255, 
+                        255 - iter % 255, 
+                        255 - iter % 255, 
+                        255 - iter % 255));
+            }
             
             return bm;
         }

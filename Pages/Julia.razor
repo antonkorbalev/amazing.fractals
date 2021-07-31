@@ -1,20 +1,57 @@
 ﻿@page "/julia"
 
 <div class="container text-center">
+    <div class="input-group input-group-lg m-3">
+        <div class="input-group-prepend">
+            <span class="input-group-text" id="inputGroup-sizing-lg">C = </span>
+        </div>
+        <input type="text" class="form-control" aria-label="Large" aria-describedby="inputGroup-sizing-sm" @bind-value="@_cRe"/>
+        <div class="input-group-prepend">
+            <span class="input-group-text" id="inputGroup-sizing-lg"> +  </span>
+        </div>
+        <input type="text" class="form-control" aria-label="Large" aria-describedby="inputGroup-sizing-sm" @bind-value="@_cIm"/>
+        <div class="input-group-prepend">
+            <span class="input-group-text" id="inputGroup-sizing-lg"> i  </span>
+        </div>
+    </div>
+    <div class="input-group input-group-lg m-3">
+        <div class="input-group-prepend">
+            <span class="input-group-text" id="inputGroup-sizing-lg">Max iterations</span>
+        </div>
+        <input type="text" class="form-control" aria-label="Large" aria-describedby="inputGroup-sizing-sm" @bind-value="@_maxIterations"/>
+        <button type="button" class="btn btn-secondary ml-3" @onclick="@Generate">Generate Julia Set</button>
+    </div>
     <img class="img-fluid"
-             src="data:image;base64,@Convert.ToBase64String(_genData.FractalData)"
-             alt="Fractal is unavailable"/>
+         src="data:image;base64,@Convert.ToBase64String(_genBytes)"
+         alt="Fractal is unavailable"/>
 </div>
 
 @using amazing.fractals.Data
 @inject JuliaGeneratorService GeneratorService
 
 @code {
-    private FractalGenerationData _genData;
+    private byte[] _genBytes;
     private int _pixelsNum = 1000;
+    private double _cRe = -0.7;
+    private double _cIm = 0.27015;
+    private int _maxIterations = 500;
     
     protected override async Task OnInitializedAsync()
     {
-        _genData = await GeneratorService.Generate(_pixelsNum, _pixelsNum);
+        await Generate();
+    }
+
+    private async Task Generate()
+    {
+        _genBytes = await GeneratorService.Generate(new FractalGenerationData()
+        {
+            ImageHeight = _pixelsNum,
+            ImageWidth = _pixelsNum, 
+            CRe = _cRe, 
+            CIm = _cIm, 
+            MaxIterations = _maxIterations
+        });
+
+        StateHasChanged();
     }
 }
