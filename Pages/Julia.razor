@@ -19,9 +19,19 @@
             <span class="input-group-text" id="inputGroup-sizing-lg">Max iterations</span>
         </div>
         <input type="text" class="form-control" aria-label="Large" aria-describedby="inputGroup-sizing-sm" @bind-value="@_maxIterations"/>
-        <button type="button" class="btn btn-secondary ml-3" @onclick="@Generate">Generate Julia Set</button>
     </div>
-    <img class="img-fluid"
+    <div class="row m-3">
+        <button type="button" class="btn btn-secondary btn-lg m-1 @(_zoomIn ? "disabled" : "")" @onclick="@ZoomIn" >
+            <span class="oi oi-zoom-in"></span>
+            Zoom in
+        </button>
+        <button type="button" class="btn btn-secondary btn-lg m-1 @(_zoomIn ? "" : "disabled")" @onclick="@ZoomOut">
+            <span class="oi oi-zoom-out"></span>
+            Zoom out
+        </button>        
+        <button type="button" class="btn btn-secondary btn-lg m-1" @onclick="@Generate">Generate Julia Set</button>
+    </div>
+    <img class="@ImgClass"
          src="data:image;base64,@Convert.ToBase64String(_genBytes)"
          alt="Fractal is unavailable"/>
 </div>
@@ -35,6 +45,24 @@
     private double _cRe = -0.7;
     private double _cIm = 0.27015;
     private int _maxIterations = 500;
+    private bool _zoomIn = true;
+
+    private string ImgClass
+    {
+        get => $"img-fluid {(_zoomIn ? "cursor-zoom-in" : "cursor-zoom-out")}";
+    }
+
+    private void ZoomIn()
+    {
+        _zoomIn = true;
+        StateHasChanged();
+    }
+
+    private void ZoomOut()
+    {
+        _zoomIn = false;
+        StateHasChanged();
+    }
     
     protected override async Task OnInitializedAsync()
     {
