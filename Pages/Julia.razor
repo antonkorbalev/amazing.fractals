@@ -29,10 +29,10 @@
             <span class="oi oi-zoom-out"></span>
             Zoom out
         </label>        
-        <label type="button" class="btn btn-secondary btn-lg m-1" @onclick="@Generate">Generate Julia Set</label>
+        <label type="button" class="btn btn-secondary btn-lg m-1" @onclick="@(() => Generate(true))">Generate Julia Set</label>
     </div>
     <div class="container @(_isBusy ? "invisible" : "visible")">
-        <img class="@ImgClass"
+        <img class="@ImgClass"  @onclick="Click"
              src="data:image;base64,@Convert.ToBase64String(_genBytes)"
              alt="Fractal is unavailable"/>
     </div>
@@ -52,7 +52,11 @@
     private int _maxIterations = 500;
     private bool _zoomIn = true;
     private bool _isBusy;
-
+    private double _moveX;
+    private double _moveY;
+    private double _zoom = 1;
+    const double ZoomInc = 1.2;
+    
     private string ImgClass => $"img-fluid {(_zoomIn ? "cursor-zoom-in" : "cursor-zoom-out")}";
 
     private void ZoomIn()
@@ -69,11 +73,18 @@
     
     protected override async Task OnInitializedAsync()
     {
-        await Generate();
+        await Generate(true);
     }
 
-    private async Task Generate()
+    private async Task Generate(bool reset)
     {
+        if (reset)
+        {
+            _zoom = 1;
+            _moveX = 0;
+            _moveY = 0;
+        }
+        
         await Task.Run(() =>
         {
             _genBytes = new byte[0];
@@ -87,9 +98,24 @@
                     ImageWidth = _pixelsNum,
                     CRe = _cRe,
                     CIm = _cIm,
-                    MaxIterations = _maxIterations
+                    MaxIterations = _maxIterations,
+                    MoveX = _moveX,
+                    MoveY =  _moveY, 
+                    Zoom = _zoom
                 });
                 _isBusy = false;
             });
+    }
+
+    private async Task Click(MouseEventArgs args)
+    {
+        _moveX = args.OffsetX - _pixelsNum / 2;
+        _moveY = args.OffsetY - _pixelsNum / 2;
+        if (_zoomIn)
+            _zoom *= ZoomInc;
+        else
+            _zoom /= ZoomInc;
+        
+        await Generate(false);
     }
 }

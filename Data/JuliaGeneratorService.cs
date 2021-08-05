@@ -18,8 +18,8 @@ namespace amazing.fractals.Data
             for (var x=0; x < genData.ImageWidth; x++)
             for (var y = 0; y < genData.ImageHeight; y++)
             {
-                var newRe = 1.5 * (x - genData.ImageWidth / 2) / (0.5 * genData.Zoom * genData.ImageWidth) + genData.MoveX;
-                var newIm = (y - genData.ImageHeight / 2) / (0.5 * genData.Zoom * genData.ImageHeight) + genData.MoveY;
+                var newRe = 1.5 * (x + genData.MoveX - genData.ImageWidth / 2) / (0.5 * genData.Zoom * genData.ImageWidth);
+                var newIm = (y + genData.MoveY - genData.ImageHeight / 2) / (0.5 * genData.Zoom * genData.ImageHeight);
 
                 var iter = 0;
                 for (var i = 0; i < genData.MaxIterations; i++)
