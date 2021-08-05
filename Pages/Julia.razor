@@ -21,36 +21,39 @@
         <input type="text" class="form-control" aria-label="Large" aria-describedby="inputGroup-sizing-sm" @bind-value="@_maxIterations"/>
     </div>
     <div class="row m-3">
-        <button type="button" class="btn btn-secondary btn-lg m-1 @(_zoomIn ? "disabled" : "")" @onclick="@ZoomIn" >
+        <label type="button" class="btn btn-secondary btn-lg m-1 @(_zoomIn ? "disabled" : "")" @onclick="@ZoomIn" >
             <span class="oi oi-zoom-in"></span>
             Zoom in
-        </button>
-        <button type="button" class="btn btn-secondary btn-lg m-1 @(_zoomIn ? "" : "disabled")" @onclick="@ZoomOut">
+        </label>
+        <label type="button" class="btn btn-secondary btn-lg m-1 @(_zoomIn ? "" : "disabled")" @onclick="@ZoomOut">
             <span class="oi oi-zoom-out"></span>
             Zoom out
-        </button>        
-        <button type="button" class="btn btn-secondary btn-lg m-1" @onclick="@Generate">Generate Julia Set</button>
+        </label>        
+        <label type="button" class="btn btn-secondary btn-lg m-1" @onclick="@Generate">Generate Julia Set</label>
     </div>
-    <img class="@ImgClass"
-         src="data:image;base64,@Convert.ToBase64String(_genBytes)"
-         alt="Fractal is unavailable"/>
+    <div class="container @(_isBusy ? "invisible" : "visible")">
+        <img class="@ImgClass"
+             src="data:image;base64,@Convert.ToBase64String(_genBytes)"
+             alt="Fractal is unavailable"/>
+    </div>
+    <div class="spinner-border @(_isBusy ? "visible" : "invisible") text-secondary" role="status">
+      <span class="sr-only">Loading...</span>
+    </div>
 </div>
 
 @using amazing.fractals.Data
 @inject JuliaGeneratorService GeneratorService
 
 @code {
-    private byte[] _genBytes;
+    private byte[] _genBytes = new byte[0];
     private int _pixelsNum = 1000;
     private double _cRe = -0.7;
     private double _cIm = 0.27015;
     private int _maxIterations = 500;
     private bool _zoomIn = true;
+    private bool _isBusy;
 
-    private string ImgClass
-    {
-        get => $"img-fluid {(_zoomIn ? "cursor-zoom-in" : "cursor-zoom-out")}";
-    }
+    private string ImgClass => $"img-fluid {(_zoomIn ? "cursor-zoom-in" : "cursor-zoom-out")}";
 
     private void ZoomIn()
     {
@@ -71,15 +74,22 @@
 
     private async Task Generate()
     {
-        _genBytes = await GeneratorService.Generate(new FractalGenerationData()
+        await Task.Run(() =>
         {
-            ImageHeight = _pixelsNum,
-            ImageWidth = _pixelsNum, 
-            CRe = _cRe, 
-            CIm = _cIm, 
-            MaxIterations = _maxIterations
-        });
-
-        StateHasChanged();
+            _genBytes = new byte[0];
+            _isBusy = true;
+        })
+            .ContinueWith(async (res) =>
+            {
+                _genBytes = await GeneratorService.Generate(new FractalGenerationData()
+                {
+                    ImageHeight = _pixelsNum,
+                    ImageWidth = _pixelsNum,
+                    CRe = _cRe,
+                    CIm = _cIm,
+                    MaxIterations = _maxIterations
+                });
+                _isBusy = false;
+            });
     }
 }
