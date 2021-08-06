@@ -32,7 +32,7 @@ namespace amazing.fractals.Data
                 {
                     var num = Interlocked.Increment(ref n);
 
-                    GetIters(iters,
+                    GetItersForImagePoints(iters,
                         genData,
                         (num - 1) * stepX,
                         num * stepX,
@@ -73,18 +73,21 @@ namespace amazing.fractals.Data
             return bm;
         }
 
-        private void GetIters(int[,] iters, 
+        private void GetItersForImagePoints(int[,] iters, 
             FractalGenerationData genData, 
             int fromX, 
             int toX, 
             int fromY, 
             int toY)
         {
+            var sx = (genData.ToX - genData.FromX) / genData.ImageWidth;
+            var sy = (genData.ToY - genData.FromY) / genData.ImageHeight;
+
             for (var x= fromX; x < toX; x++)
             for (var y = fromY; y < toY; y++)
             {
-                var newRe = 1.5 * (x + genData.MoveX - genData.ImageWidth / 2) / (0.5 * genData.Zoom * genData.ImageWidth);
-                var newIm = (y + genData.MoveY - genData.ImageHeight / 2) / (0.5 * genData.Zoom * genData.ImageHeight);
+                var newRe = genData.FromX + sx * x;
+                var newIm = genData.FromY + sy * y;
 
                 var iter = 0;
                 for (var i = 0; i < genData.MaxIterations; i++)

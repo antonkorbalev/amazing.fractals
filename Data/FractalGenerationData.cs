@@ -7,13 +7,18 @@
         public double CIm { get; set; }
         public double CRe { get; set; }
         public int MaxIterations { get; set; }
-        public double Zoom { get; set; }
-        public double MoveX { get; set; }
-        public double MoveY { get; set; }
 
+        public double FromX { get; set; }
+        public double ToX { get; set; }
+        public double FromY { get; set; }
+        public double ToY { get; set; }
+        
         public FractalGenerationData()
         {
-            Zoom = 1;
+            FromX = -1;
+            ToX = 1;
+            FromY = -1;
+            ToY = 1;
         }
     }
 }

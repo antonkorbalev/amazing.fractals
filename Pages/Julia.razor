@@ -31,6 +31,9 @@
         </label>        
         <label type="button" class="btn btn-secondary btn-lg m-1" @onclick="@(() => Generate(true))">Generate Julia Set</label>
     </div>
+    <div class="container">
+        <label class="text-secondary"> <b>X:</b> from @_fromX.ToString("0.0##") to @_toX.ToString("0.0##"), <b>Y:</b> from @_fromY.ToString("0.0##") to @_toY.ToString("0.0##") </label>
+    </div>
     <div class="container-fluid min-vh-100 d-flex flex-column @(_isBusy ? "invisible" : "visible")">
         <img class="@ImgClass"  @onclick="Click"
              src="data:image;base64,@Convert.ToBase64String(_genBytes)"
@@ -46,16 +49,17 @@
 
 @code {
     private byte[] _genBytes = new byte[0];
-    private int _pixelsNum = 1000;
-    private double _cRe = -0.7;
-    private double _cIm = 0.27015;
+    private int _imageSize = 1000; // px
+    private double _cRe = -0.8;
+    private double _cIm = 0.156;
     private int _maxIterations = 500;
     private bool _zoomIn = true;
     private bool _isBusy;
-    private double _moveX;
-    private double _moveY;
-    private double _zoom = 1;
-    const double ZoomInc = 1.2;
+    private double _fromX;
+    private double _toX;
+    private double _fromY;
+    private double _toY;
+    const double ZoomCoeff = 0.2;
     
     private string ImgClass => $"img-fluid {(_zoomIn ? "cursor-zoom-in" : "cursor-zoom-out")}";
 
@@ -80,9 +84,10 @@
     {
         if (reset)
         {
-            _zoom = 1;
-            _moveX = 0;
-            _moveY = 0;
+            _fromX = -1.5;
+            _fromY = -1.5;
+            _toX = 1.5;
+            _toY = 1.5;
         }
         
         await Task.Run(() =>
@@ -94,14 +99,15 @@
             {
                 _genBytes = await GeneratorService.Generate(new FractalGenerationData()
                 {
-                    ImageHeight = _pixelsNum,
-                    ImageWidth = _pixelsNum,
+                    ImageHeight = _imageSize,
+                    ImageWidth = _imageSize,
                     CRe = _cRe,
                     CIm = _cIm,
                     MaxIterations = _maxIterations,
-                    MoveX = _moveX,
-                    MoveY =  _moveY, 
-                    Zoom = _zoom
+                    FromX = _fromX,
+                    ToX = _toX,
+                    FromY = _fromY,
+                    ToY = _toY
                 });
                 _isBusy = false;
             });
@@ -109,13 +115,27 @@
 
     private async Task Click(MouseEventArgs args)
     {
-        _moveX = args.OffsetX - _pixelsNum / 2;
-        _moveY = args.OffsetY - _pixelsNum / 2;
-        if (_zoomIn)
-            _zoom *= ZoomInc;
-        else
-            _zoom /= ZoomInc;
+        var moveX = args.OffsetX - _imageSize / 2;
+        var moveY = args.OffsetY - _imageSize / 2;
+
+        // move center of the fractal
+        var shiftX = 0D;
+        if (moveX != 0)
+            shiftX = (_toX - _fromX) / _imageSize * moveX;
         
+        var shiftY = 0D;
+        if (moveY != 0)
+            shiftY =  (_toY - _fromY) / _imageSize * moveY ;
+        
+        var m = 1 + ZoomCoeff / 2;
+        if (_zoomIn)
+            m = 1 / m;
+
+        _fromX = _fromX * m + shiftX;
+        _fromY = _fromY * m + shiftY;
+        _toX = _toX * m + shiftX;
+        _toY = _toY * m + shiftY;
+
         await Generate(false);
     }
 }
