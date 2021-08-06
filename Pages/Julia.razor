@@ -5,11 +5,11 @@
         <div class="input-group-prepend">
             <span class="input-group-text" id="inputGroup-sizing-lg">C = </span>
         </div>
-        <input type="text" class="form-control" aria-label="Large" aria-describedby="inputGroup-sizing-sm" @bind-value="@_cRe"/>
+        <input type="text" class="form-control floatNumber" aria-label="Large" aria-describedby="inputGroup-sizing-sm" @bind-value="@_cRe"/>
         <div class="input-group-prepend">
             <span class="input-group-text" id="inputGroup-sizing-lg"> +  </span>
         </div>
-        <input type="text" class="form-control" aria-label="Large" aria-describedby="inputGroup-sizing-sm" @bind-value="@_cIm"/>
+        <input type="text" class="form-control floatNumber" aria-label="Large" aria-describedby="inputGroup-sizing-sm" @bind-value="@_cIm"/>
         <div class="input-group-prepend">
             <span class="input-group-text" id="inputGroup-sizing-lg"> i  </span>
         </div>
@@ -18,7 +18,15 @@
         <div class="input-group-prepend">
             <span class="input-group-text" id="inputGroup-sizing-lg">Max iterations</span>
         </div>
-        <input type="text" class="form-control" aria-label="Large" aria-describedby="inputGroup-sizing-sm" @bind-value="@_maxIterations"/>
+        <input type="text" class="form-control number" aria-label="Large" aria-describedby="inputGroup-sizing-sm" @bind-value="@_maxIterations"/>
+        <div class="input-group-prepend">
+            <span class="input-group-text" id="inputGroup-sizing-lg">Zoom coeff.</span>
+        </div>
+        <input type="text" class="form-control number" aria-label="Large" aria-describedby="inputGroup-sizing-sm" @bind-value="@_zoomCoeff"/>
+        <div class="input-group-prepend">
+            <span class="input-group-text" id="inputGroup-sizing-lg">R</span>
+        </div>
+        <input type="text" class="form-control number" aria-label="Large" aria-describedby="inputGroup-sizing-sm" @bind-value="@_r"/>
     </div>
     <div class="row m-3">
         <label type="button" class="btn btn-secondary btn-lg m-1 @(_zoomIn ? "disabled" : "")" @onclick="@ZoomIn" >
@@ -34,7 +42,7 @@
     <div class="container">
         <label class="text-secondary"> <b>X:</b> from @_fromX.ToString("0.0##") to @_toX.ToString("0.0##"), <b>Y:</b> from @_fromY.ToString("0.0##") to @_toY.ToString("0.0##") </label>
     </div>
-    <div class="container-fluid min-vh-100 d-flex flex-column @(_isBusy ? "invisible" : "visible")">
+    <div class="container w-75 @(_isBusy ? "invisible" : "visible")">
         <img class="@ImgClass"  @onclick="Click"
              src="data:image;base64,@Convert.ToBase64String(_genBytes)"
              alt="Fractal is unavailable"/>
@@ -46,12 +54,12 @@
 
 @using amazing.fractals.Data
 @inject JuliaGeneratorService GeneratorService
+@inject IJSRuntime Jsr;
 
 @code {
     private byte[] _genBytes = new byte[0];
-    private int _imageSize = 1000; // px
-    private double _cRe = -0.8;
-    private double _cIm = 0.156;
+    private double _cRe = -0.7269;
+    private double _cIm = 0.21;
     private int _maxIterations = 500;
     private bool _zoomIn = true;
     private bool _isBusy;
@@ -59,9 +67,10 @@
     private double _toX;
     private double _fromY;
     private double _toY;
-    const double ZoomCoeff = 0.2;
-    
-    private string ImgClass => $"img-fluid {(_zoomIn ? "cursor-zoom-in" : "cursor-zoom-out")}";
+    private double _zoomCoeff = 0.5;
+    private double _r = 2;
+
+    private string ImgClass => $"img-fluid border {(_zoomIn ? "cursor-zoom-in" : "cursor-zoom-out")}";
 
     private void ZoomIn()
     {
@@ -82,6 +91,8 @@
 
     private async Task Generate(bool reset)
     {
+        var winDims = await GetWindowDimensions();
+        
         if (reset)
         {
             _fromX = -1.5;
@@ -89,6 +100,9 @@
             _toX = 1.5;
             _toY = 1.5;
         }
+
+        if (_zoomCoeff < 0)
+            _zoomCoeff = Math.Abs(_zoomCoeff);
         
         await Task.Run(() =>
         {
@@ -99,11 +113,12 @@
             {
                 _genBytes = await GeneratorService.Generate(new FractalGenerationData()
                 {
-                    ImageHeight = _imageSize,
-                    ImageWidth = _imageSize,
+                    ImageHeight =  winDims.Height / 4 * 3,
+                    ImageWidth = winDims.Width / 4 * 3,
                     CRe = _cRe,
                     CIm = _cIm,
                     MaxIterations = _maxIterations,
+                    R = _r,
                     FromX = _fromX,
                     ToX = _toX,
                     FromY = _fromY,
@@ -115,19 +130,21 @@
 
     private async Task Click(MouseEventArgs args)
     {
-        var moveX = args.OffsetX - _imageSize / 2;
-        var moveY = args.OffsetY - _imageSize / 2;
+        var winDims = await GetWindowDimensions();
+        
+        var moveX = args.OffsetX - 3 * winDims.Width / 8D;
+        var moveY = args.OffsetY - 3 * winDims.Height / 8D;
 
         // move center of the fractal
         var shiftX = 0D;
         if (moveX != 0)
-            shiftX = (_toX - _fromX) / _imageSize * moveX;
+            shiftX = (_toX - _fromX) / (winDims.Width * 3D / 4)* moveX;
         
         var shiftY = 0D;
         if (moveY != 0)
-            shiftY =  (_toY - _fromY) / _imageSize * moveY ;
+            shiftY =  (_toY - _fromY) / (winDims.Height * 3D / 4) * moveY ;
         
-        var m = 1 + ZoomCoeff / 2;
+        var m = 1 + _zoomCoeff / 2;
         if (_zoomIn)
             m = 1 / m;
 
@@ -137,5 +154,10 @@
         _toY = _toY * m + shiftY;
 
         await Generate(false);
+    }
+
+    private async Task<WindowDimension> GetWindowDimensions()
+    {
+        return await Jsr.InvokeAsync<WindowDimension>("getWindowDimensions");
     }
 }

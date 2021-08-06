@@ -15,6 +15,14 @@
     <link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
     <link href="css/site.css" rel="stylesheet" />
     <link href="amazing.fractals.styles.css" rel="stylesheet" />
+    <script> 
+        window.getWindowDimensions = function () {
+            return {
+                width: window.innerWidth,
+                height: window.innerHeight
+            };
+        }; 
+    </script> 
 </head>
 <body>
     <component type="typeof(App)" render-mode="Server" />

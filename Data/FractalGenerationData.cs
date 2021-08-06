@@ -7,6 +7,8 @@
         public double CIm { get; set; }
         public double CRe { get; set; }
         public int MaxIterations { get; set; }
+        
+        public double R { get; set; }
 
         public double FromX { get; set; }
         public double ToX { get; set; }

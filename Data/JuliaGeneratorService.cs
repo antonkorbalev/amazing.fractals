@@ -99,7 +99,7 @@ namespace amazing.fractals.Data
                     newIm = 2 * oldRe * oldIm + genData.CIm;
 
                     iter = i;
-                    if((newRe * newRe + newIm * newIm) > 4) 
+                    if((newRe * newRe + newIm * newIm) > genData.R * genData.R) 
                         break;
                 }
 
