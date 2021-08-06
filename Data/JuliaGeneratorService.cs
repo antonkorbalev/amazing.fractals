@@ -10,6 +10,7 @@ namespace amazing.fractals.Data
     public class JuliaGeneratorService
     {
         private const int ThreadsCount = 4;
+        private const byte Treshold = 30;
         
         public Task<byte[]> Generate(FractalGenerationData genData)
         {
@@ -49,12 +50,18 @@ namespace amazing.fractals.Data
 
             unsafe
             {
-                byte* ptr = (byte*) data.Scan0;
+                var ptr = (byte*) data.Scan0;
                 
                 for (var x = 0; x < genData.ImageWidth; x++)
                 for (var y = 0; y < genData.ImageHeight; y++)
                 {
                     var cn = (byte)(255 - iters[x, y] % 255);
+                    if (cn > 255 - Treshold)
+                        cn = 255;
+                    
+                    if (ptr == null)
+                        continue;
+                    
                     ptr[(x * 3) + y * stride] = cn;
                     ptr[(x * 3) + y * stride + 1] = cn;
                     ptr[(x * 3) + y * stride + 2] = cn;
