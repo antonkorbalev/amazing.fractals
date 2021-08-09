@@ -42,7 +42,7 @@
     <div class="container">
         <label class="text-secondary"> <b>X:</b> from @_fromX.ToString("0.0##") to @_toX.ToString("0.0##"), <b>Y:</b> from @_fromY.ToString("0.0##") to @_toY.ToString("0.0##") </label>
     </div>
-    <div class="container w-100 @(_isBusy ? "invisible" : "visible")">
+    <div id="imgContainer" class="container w-75 @(_isBusy ? "invisible" : "visible")">
         <img class="@ImgClass"  @onclick="Click"
              src="data:image;base64,@Convert.ToBase64String(_genBytes)"
              alt="Fractal is unavailable"/>
@@ -84,14 +84,18 @@
         StateHasChanged();
     }
     
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        await Generate(true);
+        if (firstRender)
+        {
+            await Generate(true);
+            StateHasChanged();
+        }
     }
 
     private async Task Generate(bool reset)
     {
-        var winDims = await GetWindowDimensions();
+        var dims = await GetDimensions();
         
         if (reset)
         {
@@ -113,8 +117,8 @@
             {
                 _genBytes = await GeneratorService.Generate(new FractalGenerationData()
                 {
-                    ImageHeight =  winDims.Height,
-                    ImageWidth = winDims.Width,
+                    ImageHeight = (int)dims.Width,
+                    ImageWidth = (int)dims.Width,
                     CRe = _cRe,
                     CIm = _cIm,
                     MaxIterations = _maxIterations,
@@ -130,15 +134,15 @@
 
     private async Task Click(MouseEventArgs args)
     {
-        var winDims = await GetWindowDimensions();
+        var dims = await GetDimensions();
 
-        var moveX = args.ClientX - winDims.Width / 2D;
-        var moveY = args.ClientY - winDims.Height / 2D;
+        var moveX = args.ClientX - dims.Width / 2D;
+        var moveY = args.ClientY - dims.Width / 2D;
 
         var wX = _toX - _fromX;
         var wY = _toY - _fromY;
-        var xPx = wX / winDims.Width;
-        var yPx = wY / winDims.Height;
+        var xPx = wX / dims.Width;
+        var yPx = wY / dims.Width;
 
         var centerX = _toX - wX / 2 + xPx * moveX;
         var centerY = _toY - wY / 2 + yPx * moveY;
@@ -155,8 +159,8 @@
         await Generate(false);
     }
 
-    private async Task<WindowDimension> GetWindowDimensions()
+    private async Task<BoundingClientRect> GetDimensions()
     {
-        return await Jsr.InvokeAsync<WindowDimension>("getWindowDimensions");
+        return await Jsr.InvokeAsync<BoundingClientRect>("getClientRect", "imgContainer");
     }
 }
