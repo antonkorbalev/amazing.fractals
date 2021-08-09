@@ -42,7 +42,7 @@
     <div class="container">
         <label class="text-secondary"> <b>X:</b> from @_fromX.ToString("0.0##") to @_toX.ToString("0.0##"), <b>Y:</b> from @_fromY.ToString("0.0##") to @_toY.ToString("0.0##") </label>
     </div>
-    <div class="container w-75 @(_isBusy ? "invisible" : "visible")">
+    <div class="container w-100 @(_isBusy ? "invisible" : "visible")">
         <img class="@ImgClass"  @onclick="Click"
              src="data:image;base64,@Convert.ToBase64String(_genBytes)"
              alt="Fractal is unavailable"/>
@@ -113,8 +113,8 @@
             {
                 _genBytes = await GeneratorService.Generate(new FractalGenerationData()
                 {
-                    ImageHeight =  winDims.Height / 4 * 3,
-                    ImageWidth = winDims.Width / 4 * 3,
+                    ImageHeight =  winDims.Height,
+                    ImageWidth = winDims.Width,
                     CRe = _cRe,
                     CIm = _cIm,
                     MaxIterations = _maxIterations,
@@ -131,27 +131,26 @@
     private async Task Click(MouseEventArgs args)
     {
         var winDims = await GetWindowDimensions();
-        
-        var moveX = args.OffsetX - 3 * winDims.Width / 8D;
-        var moveY = args.OffsetY - 3 * winDims.Height / 8D;
 
-        // move center of the fractal
-        var shiftX = 0D;
-        if (moveX != 0)
-            shiftX = (_toX - _fromX) / (winDims.Width * 3D / 4)* moveX;
-        
-        var shiftY = 0D;
-        if (moveY != 0)
-            shiftY =  (_toY - _fromY) / (winDims.Height * 3D / 4) * moveY ;
-        
+        var moveX = args.ClientX - winDims.Width / 2D;
+        var moveY = args.ClientY - winDims.Height / 2D;
+
+        var wX = _toX - _fromX;
+        var wY = _toY - _fromY;
+        var xPx = wX / winDims.Width;
+        var yPx = wY / winDims.Height;
+
+        var centerX = _toX - wX / 2 + xPx * moveX;
+        var centerY = _toY - wY / 2 + yPx * moveY;
+
         var m = 1 + _zoomCoeff / 2;
         if (_zoomIn)
             m = 1 / m;
 
-        _fromX = _fromX * m + shiftX;
-        _fromY = _fromY * m + shiftY;
-        _toX = _toX * m + shiftX;
-        _toY = _toY * m + shiftY;
+        _fromX = m * (centerX - wX / 2);
+        _fromY = m * (centerY - wY / 2);
+        _toX = m * (centerX + wY /2);
+        _toY = m * (centerY + wY / 2);
 
         await Generate(false);
     }

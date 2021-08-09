@@ -4,13 +4,20 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Threading;
+using Microsoft.Extensions.Logging;
 
 namespace amazing.fractals.Data
 {
     public class JuliaGeneratorService
     {
+        private readonly ILogger _logger;
         private const int ThreadsCount = 4;
         private const byte Treshold = 30;
+        
+        public JuliaGeneratorService(ILogger<JuliaGeneratorService> logger)
+        {
+            _logger = logger;
+        }
         
         public Task<byte[]> Generate(FractalGenerationData genData)
         {
@@ -32,12 +39,20 @@ namespace amazing.fractals.Data
                 {
                     var num = Interlocked.Increment(ref n);
 
-                    GetItersForImagePoints(iters,
-                        genData,
-                        (num - 1) * stepX,
-                        num * stepX,
-                        0,
-                        genData.ImageHeight);
+                    try
+                    {
+                        GetItersForImagePoints(iters,
+                            genData,
+                            (num - 1) * stepX,
+                            num * stepX,
+                            0,
+                            genData.ImageHeight);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogCritical(ex.Message);
+                        _logger.LogCritical(ex.StackTrace);
+                    }
                 });
 
             Task.WaitAll(tasks);
