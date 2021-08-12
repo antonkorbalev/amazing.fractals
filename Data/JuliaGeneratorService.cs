@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Drawing;
 using System.Drawing.Imaging;
@@ -26,6 +27,7 @@ namespace amazing.fractals.Data
 
         private Image GetFractalImage(FractalGenerationData genData)
         {
+            
             var bm = new Bitmap(genData.ImageWidth, genData.ImageHeight);
 
             var tasks = new Task[ThreadsCount];
@@ -34,6 +36,10 @@ namespace amazing.fractals.Data
             var n = 0;
             var iters = new int[genData.ImageWidth, genData.ImageHeight];
 
+            _logger.LogInformation($"Starting fractal generation for image {genData.ImageWidth}x{genData.ImageHeight}px  ..");
+            var sw = new Stopwatch();
+            sw.Start();
+            
             for (var i = 0; i < ThreadsCount; i++)
                 tasks[i] = Task.Run(() =>
                 {
@@ -56,7 +62,10 @@ namespace amazing.fractals.Data
                 });
 
             Task.WaitAll(tasks);
-
+            sw.Stop();
+            _logger.LogInformation($"Fractal generation took {sw.ElapsedMilliseconds} ms ..");
+            _logger.LogInformation($"Processing image {genData.ImageWidth}x{genData.ImageHeight}px ..");
+            sw.Restart();
             var data = bm.LockBits(
                 new Rectangle(0, 0, bm.Width, bm.Height),
                 ImageLockMode.ReadWrite,
@@ -84,7 +93,8 @@ namespace amazing.fractals.Data
             }
 
             bm.UnlockBits(data);
-
+            _logger.LogInformation($"Image processing took {sw.ElapsedMilliseconds} ms ..");
+            
             return bm;
         }
 

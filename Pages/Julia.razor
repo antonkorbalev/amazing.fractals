@@ -29,14 +29,13 @@
         <input type="text" class="form-control number" aria-label="Large" aria-describedby="inputGroup-sizing-sm" @bind-value="@_r"/>
     </div>
     <div class="row m-3">
-        <label type="button" class="btn btn-secondary btn-lg m-1 @(_zoomIn ? "disabled" : "")" @onclick="@ZoomIn" >
+        <label type="button" class="btn btn-outline-secondary btn-lg m-1 @(_zoomIn ? "disabled" : "")" @onclick="@ZoomIn" >
             <span class="oi oi-zoom-in"></span>
-            Zoom in
         </label>
-        <label type="button" class="btn btn-secondary btn-lg m-1 @(_zoomIn ? "" : "disabled")" @onclick="@ZoomOut">
+        <label type="button" class="btn btn-outline-secondary btn-lg m-1 @(_zoomIn ? "" : "disabled")" @onclick="@ZoomOut">
             <span class="oi oi-zoom-out"></span>
-            Zoom out
-        </label>        
+        </label>
+        
         <label type="button" class="btn btn-secondary btn-lg m-1" @onclick="@(() => Generate(true))">Generate Julia Set</label>
     </div>
     <div class="container">
@@ -53,6 +52,7 @@
 </div>
 
 @using amazing.fractals.Data
+@using Microsoft.AspNetCore.Mvc.ModelBinding.Metadata
 @inject JuliaGeneratorService GeneratorService
 @inject IJSRuntime Jsr;
 
@@ -96,7 +96,13 @@
     private async Task Generate(bool reset)
     {
         var dims = await GetDimensions();
-        
+
+        if (Math.Abs(dims.Width - dims.Height) > 0.01)
+        {
+            var max = Math.Max(dims.Width, dims.Height);
+            dims.Width = dims.Height = max;
+        }
+
         if (reset)
         {
             _fromX = -1.5;
@@ -118,7 +124,7 @@
                 _genBytes = await GeneratorService.Generate(new FractalGenerationData()
                 {
                     ImageHeight = (int)dims.Width,
-                    ImageWidth = (int)dims.Width,
+                    ImageWidth = (int)dims.Height,
                     CRe = _cRe,
                     CIm = _cIm,
                     MaxIterations = _maxIterations,
@@ -137,12 +143,12 @@
         var dims = await GetDimensions();
 
         var moveX = args.ClientX - dims.Width / 2D;
-        var moveY = args.ClientY - dims.Width / 2D;
+        var moveY = args.ClientY - dims.Height / 2D;
 
         var wX = _toX - _fromX;
         var wY = _toY - _fromY;
         var xPx = wX / dims.Width;
-        var yPx = wY / dims.Width;
+        var yPx = wY / dims.Height;
 
         var centerX = _toX - wX / 2 + xPx * moveX;
         var centerY = _toY - wY / 2 + yPx * moveY;
