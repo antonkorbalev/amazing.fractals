@@ -168,16 +168,10 @@
     {
         var dims = await GetDimensions();
 
-        var moveX = args.OffsetX - dims.Width / 2D;
-        var moveY = args.OffsetY - dims.Height / 2D;
-
         var wX = _toX - _fromX;
         var wY = _toY - _fromY;
-        var xPx = wX / dims.Width;
-        var yPx = wY / dims.Height;
-
-        var centerX = _toX - wX / 2 + xPx * moveX;
-        var centerY = _toY - wY / 2 + yPx * moveY;
+        var centerX = _fromX + wX / dims.Width * args.OffsetX ;
+        var centerY = _fromY + wY / dims.Height * args.OffsetY;
 
         var m = _mode switch
         {
