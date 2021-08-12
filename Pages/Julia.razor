@@ -180,10 +180,10 @@
             _ => 1
         };
 
-        _fromX = m * (centerX - wX / 2);
-        _fromY = m * (centerY - wY / 2);
-        _toX = m * (centerX + wY /2);
-        _toY = m * (centerY + wY / 2);
+        _fromX = centerX - wX * m / 2;
+        _fromY = centerY - wY * m / 2;
+        _toX = _fromX + wX * m;
+        _toY = _fromY + wY * m;
 
         await Generate(false);
     }
