@@ -96,6 +96,10 @@ body {
     cursor: zoom-out;
 }
 
+.cursor-move{
+    cursor: move;
+}
+
 .spinner{
     position: absolute;
     margin: auto;

@@ -29,11 +29,14 @@
         <input type="text" class="form-control number" aria-label="Large" aria-describedby="inputGroup-sizing-sm" @bind-value="@_r"/>
     </div>
     <div class="row m-3">
-        <label type="button" class="btn btn-outline-secondary btn-lg m-1 @(_zoomIn ? "disabled" : "")" @onclick="@ZoomIn" >
+        <label type="button" class="btn btn-outline-secondary btn-lg m-1 @(_mode == Mode.ZoomIn ? "": "disabled")" @onclick="@ZoomIn" >
             <span class="oi oi-zoom-in"></span>
         </label>
-        <label type="button" class="btn btn-outline-secondary btn-lg m-1 @(_zoomIn ? "" : "disabled")" @onclick="@ZoomOut">
+        <label type="button" class="btn btn-outline-secondary btn-lg m-1 @(_mode == Mode.ZoomOut ? "" : "disabled")" @onclick="@ZoomOut">
             <span class="oi oi-zoom-out"></span>
+        </label>
+        <label type="button" class="btn btn-outline-secondary btn-lg m-1 @(_mode == Mode.Move ? "" : "disabled")" @onclick="@Move">
+            <span class="oi oi-move"></span>
         </label>
         
         <label type="button" class="btn btn-secondary btn-lg m-1" @onclick="@(() => Generate(true))">Generate Julia Set</label>
@@ -52,16 +55,23 @@
 </div>
 
 @using amazing.fractals.Data
-@using Microsoft.AspNetCore.Mvc.ModelBinding.Metadata
 @inject JuliaGeneratorService GeneratorService
 @inject IJSRuntime Jsr;
 
 @code {
+
+    private enum Mode
+    {
+        ZoomIn,
+        ZoomOut,
+        Move
+    }
+    
     private byte[] _genBytes = new byte[0];
     private double _cRe = -0.7269;
     private double _cIm = 0.21;
     private int _maxIterations = 500;
-    private bool _zoomIn = true;
+    private Mode _mode;
     private bool _isBusy = true;
     private double _fromX;
     private double _toX;
@@ -70,17 +80,33 @@
     private double _zoomCoeff = 0.5;
     private double _r = 2;
 
-    private string ImgClass => $"img-fluid border {(_zoomIn ? "cursor-zoom-in" : "cursor-zoom-out")}";
+    private string ImgClass => $"img-fluid border {GetCursorName()}";
 
+    private string GetCursorName()
+    {
+        return _mode switch
+        {
+            Mode.ZoomIn => "cursor-zoom-in",
+            Mode.ZoomOut => "cursor-zoom-out",
+            _ => "cursor-move"
+        };
+    }
+    
     private void ZoomIn()
     {
-        _zoomIn = true;
+        _mode = Mode.ZoomIn;
         StateHasChanged();
     }
 
     private void ZoomOut()
     {
-        _zoomIn = false;
+        _mode = Mode.ZoomOut;
+        StateHasChanged();
+    }
+    
+    private void Move()
+    {
+        _mode = Mode.Move;
         StateHasChanged();
     }
     
@@ -142,8 +168,8 @@
     {
         var dims = await GetDimensions();
 
-        var moveX = args.ClientX - dims.Width / 2D;
-        var moveY = args.ClientY - dims.Height / 2D;
+        var moveX = args.OffsetX - dims.Width / 2D;
+        var moveY = args.OffsetY - dims.Height / 2D;
 
         var wX = _toX - _fromX;
         var wY = _toY - _fromY;
@@ -153,9 +179,12 @@
         var centerX = _toX - wX / 2 + xPx * moveX;
         var centerY = _toY - wY / 2 + yPx * moveY;
 
-        var m = 1 + _zoomCoeff / 2;
-        if (_zoomIn)
-            m = 1 / m;
+        var m = _mode switch
+        {
+            Mode.ZoomOut => 1 + _zoomCoeff,
+            Mode.ZoomIn => 1 / (1 + _zoomCoeff),
+            _ => 1
+        };
 
         _fromX = m * (centerX - wX / 2);
         _fromY = m * (centerY - wY / 2);
