@@ -16,7 +16,7 @@
     </div>
     <div class="input-group input-group-lg m-3">
         <div class="input-group-prepend">
-            <span class="input-group-text" id="inputGroup-sizing-lg">Max iterations</span>
+            <span class="input-group-text" id="inputGroup-sizing-lg">Max iter.</span>
         </div>
         <input type="text" class="form-control number" aria-label="Large" aria-describedby="inputGroup-sizing-sm" @bind-value="@_maxIterations"/>
         <div class="input-group-prepend">
@@ -44,7 +44,7 @@
     <div class="container">
         <label class="text-secondary"> <b>X:</b> from @_fromX.ToString("0.0##") to @_toX.ToString("0.0##"), <b>Y:</b> from @_fromY.ToString("0.0##") to @_toY.ToString("0.0##") </label>
     </div>
-    <div id="imgContainer" class="container w-75 @(_isBusy ? "invisible" : "visible")">
+    <div id="imgContainer" class="container text-center w-100 @(_isBusy ? "invisible" : "visible")">
         <img class="@ImgClass"  @onclick="Click"
              src="data:image;base64,@Convert.ToBase64String(_genBytes)"
              alt="Fractal is unavailable"/>
@@ -80,7 +80,7 @@
     private double _zoomCoeff = 0.5;
     private double _r = 2;
 
-    private string ImgClass => $"img-fluid border {GetCursorName()}";
+    private string ImgClass => $"border {GetCursorName()}";
 
     private string GetCursorName()
     {
